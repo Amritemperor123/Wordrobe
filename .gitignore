@@ -1,0 +1,68 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor/temporary files
+*~
+*.autosave
+*.orig
+*.rej
+.#*
+*.*#
+.*.swp
+*.flc
+
+# Qt Creator user/session data
+.qtcreator/
+*.pro.user*
+*.qbs.user*
+CMakeLists.txt.user*
+
+# Build output (CMake / Qt)
+/build*/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+build.ninja
+.ninja_deps
+.ninja_log
+CMakeFiles/
+Testing/
+.qtc_clangd/
+.qt/
+.rcc/
+qmltypes/
+meta_types/
+
+# Qt generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.moc
+*.qm
+*.prl
+/.qmake.cache
+/.qmake.stash
+
+# Compiled objects/libraries/binaries
+*.a
+*.o
+*.obj
+*.so
+*.so.*
+*.dll
+*.exe
+*.app
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.idb
+*.res
+*.rc
+
+# Misc
+core
+!core/
+*.core
+tags

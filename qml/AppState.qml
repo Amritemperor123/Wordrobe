@@ -19,6 +19,8 @@ Item {
     property int maxRecentFiles: 10
     property bool darkTheme: false
     property bool wordWrapEnabled: true
+    property bool statusBarVisible: true
+    property int zoomPercent: 100
 
     property color windowBackgroundColor: darkTheme ? "#202124" : "#f5f5f5"
     property color panelBackgroundColor: darkTheme ? "#2b2d31" : "#e9e9e9"
@@ -35,6 +37,8 @@ Item {
         category: "Appearance"
         property bool darkTheme: false
         property bool wordWrapEnabled: true
+        property bool statusBarVisible: true
+        property int zoomPercent: 100
         property string recentFilesJson: "[]"
     }
 
@@ -45,6 +49,8 @@ Item {
     Component.onCompleted: {
         root.darkTheme = settings.darkTheme
         root.wordWrapEnabled = settings.wordWrapEnabled
+        root.statusBarVisible = settings.statusBarVisible
+        root.zoomPercent = root.clampZoom(settings.zoomPercent)
         root.loadRecentFiles()
     }
 
@@ -54,6 +60,30 @@ Item {
 
     onWordWrapEnabledChanged: {
         settings.wordWrapEnabled = root.wordWrapEnabled
+    }
+
+    onStatusBarVisibleChanged: {
+        settings.statusBarVisible = root.statusBarVisible
+    }
+
+    onZoomPercentChanged: {
+        settings.zoomPercent = root.zoomPercent
+    }
+
+    function clampZoom(value) {
+        return Math.max(50, Math.min(200, value))
+    }
+
+    function setZoomPercent(value) {
+        root.zoomPercent = root.clampZoom(value)
+    }
+
+    function zoomIn() {
+        root.setZoomPercent(root.zoomPercent + 10)
+    }
+
+    function zoomOut() {
+        root.setZoomPercent(root.zoomPercent - 10)
     }
 
     function displayNameForPath(path) {

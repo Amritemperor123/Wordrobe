@@ -12,6 +12,7 @@ ToolBar {
     property int currentLineNumber: 1
     property int currentColumnNumber: 1
     property int totalLineCount: 1
+    property int zoomPercent: 100
     property color panelBackgroundColor: "#e9e9e9"
     property color foregroundColor: "#1f1f1f"
 
@@ -41,6 +42,10 @@ ToolBar {
         }
         Label {
             text: root.modified ? "Modified" : "Saved"
+            color: root.foregroundColor
+        }
+        Label {
+            text: "Zoom " + root.zoomPercent + "%"
             color: root.foregroundColor
         }
     }

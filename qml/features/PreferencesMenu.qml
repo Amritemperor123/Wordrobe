@@ -8,8 +8,13 @@ Menu {
     title: qsTr("Preferences")
 
     required property bool darkTheme
+    required property bool statusBarVisible
+    required property int zoomPercent
 
     signal themeChanged(bool darkTheme)
+    signal statusBarVisibilityChanged(bool visible)
+    signal zoomInRequested()
+    signal zoomOutRequested()
 
     Menu {
         title: qsTr("Theme")
@@ -25,5 +30,27 @@ Menu {
             checked: root.darkTheme
             onTriggered: root.themeChanged(true)
         }
+    }
+
+    MenuSeparator {}
+
+    Action {
+        text: qsTr("Show Status Bar")
+        checkable: true
+        checked: root.statusBarVisible
+        onTriggered: root.statusBarVisibilityChanged(checked)
+    }
+
+    MenuSeparator {}
+
+    Action {
+        text: qsTr("Zoom In")
+        enabled: root.zoomPercent < 200
+        onTriggered: root.zoomInRequested()
+    }
+    Action {
+        text: qsTr("Zoom Out")
+        enabled: root.zoomPercent > 50
+        onTriggered: root.zoomOutRequested()
     }
 }

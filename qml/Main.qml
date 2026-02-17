@@ -17,6 +17,8 @@ ApplicationWindow {
     height: 640
     visible: true
     title: (document.modified ? "* " : "") + document.displayName + " - Wordrobe"
+    property bool allowCloseWithoutPrompt: false
+    property bool closeAfterSaveAs: false
 
     AppState {
         id: appState
@@ -104,6 +106,34 @@ ApplicationWindow {
         return count
     }
 
+    Shortcut {
+        sequence: "Ctrl++"
+        context: Qt.ApplicationShortcut
+        onActivated: appState.zoomIn()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+="
+        context: Qt.ApplicationShortcut
+        onActivated: appState.zoomIn()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+-"
+        context: Qt.ApplicationShortcut
+        onActivated: appState.zoomOut()
+    }
+
+    onClosing: function(close) {
+        if (allowCloseWithoutPrompt || !document.modified || document.text.length === 0) {
+            close.accepted = true
+            return
+        }
+
+        close.accepted = false
+        unsavedChangesDialog.open()
+    }
+
     menuBar: MenuBar {
         Features.FileMenu {
             recentFilesModel: appState.recentFilesModel
@@ -145,9 +175,16 @@ ApplicationWindow {
 
         Features.PreferencesMenu {
             darkTheme: appState.darkTheme
+            statusBarVisible: appState.statusBarVisible
+            zoomPercent: appState.zoomPercent
             onThemeChanged: function(darkTheme) {
                 appState.darkTheme = darkTheme
             }
+            onStatusBarVisibilityChanged: function(visible) {
+                appState.statusBarVisible = visible
+            }
+            onZoomInRequested: appState.zoomIn()
+            onZoomOutRequested: appState.zoomOut()
         }
     }
 
@@ -188,14 +225,98 @@ ApplicationWindow {
         onAccepted: {
             if (document.saveAs(selectedFile.toString())) {
                 appState.addRecentFile(document.filePath)
+                if (closeAfterSaveAs) {
+                    closeAfterSaveAs = false
+                    allowCloseWithoutPrompt = true
+                    Qt.quit()
+                }
             }
         }
+        onRejected: closeAfterSaveAs = false
     }
 
     Features.ErrorDialog {
         id: errorDialog
         errorText: document.lastError
         foregroundColor: appState.foregroundColor
+    }
+
+    Dialog {
+        id: unsavedChangesDialog
+        title: "Unsaved Changes"
+        modal: true
+        focus: true
+        closePolicy: Popup.NoAutoClose
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        width: 420
+
+        background: Rectangle {
+            color: appState.panelBackgroundColor
+            border.color: appState.gutterDividerColor
+            radius: 6
+        }
+
+        contentItem: Column {
+            spacing: 12
+
+            Label {
+                width: parent.width
+                wrapMode: Text.Wrap
+                color: appState.foregroundColor
+                text: "You have unsaved changes. What would you like to do before closing?"
+            }
+        }
+
+        footer: RowLayout {
+            spacing: 8
+
+            Button {
+                text: "Save"
+                onClicked: {
+                    unsavedChangesDialog.close()
+                    if (document.filePath !== "") {
+                        if (document.save()) {
+                            allowCloseWithoutPrompt = true
+                            Qt.quit()
+                        }
+                    } else {
+                        closeAfterSaveAs = true
+                        saveDialog.open()
+                    }
+                }
+            }
+
+            Button {
+                text: "Save As"
+                onClicked: {
+                    unsavedChangesDialog.close()
+                    closeAfterSaveAs = true
+                    saveDialog.open()
+                }
+            }
+
+            Button {
+                text: "Keep Editing"
+                onClicked: {
+                    closeAfterSaveAs = false
+                    unsavedChangesDialog.close()
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Button {
+                text: "Cancel"
+                onClicked: {
+                    unsavedChangesDialog.close()
+                    allowCloseWithoutPrompt = true
+                    Qt.quit()
+                }
+            }
+        }
     }
 
     Connections {
@@ -228,6 +349,7 @@ ApplicationWindow {
             selectionColor: appState.selectionColor
             gutterTextColor: appState.gutterTextColor
             gutterDividerColor: appState.gutterDividerColor
+            zoomPercent: appState.zoomPercent
             onTextEdited: function(value) {
                 if (value !== document.text) {
                     document.text = value
@@ -237,11 +359,14 @@ ApplicationWindow {
 
         Features.StatusBarPane {
             Layout.fillWidth: true
+            visible: appState.statusBarVisible
+            Layout.preferredHeight: visible ? implicitHeight : 0
             filePath: document.filePath
             modified: document.modified
             currentLineNumber: editorPane.currentLineNumber
             currentColumnNumber: editorPane.currentColumnNumber
             totalLineCount: editorPane.totalLineCount
+            zoomPercent: appState.zoomPercent
             panelBackgroundColor: appState.panelBackgroundColor
             foregroundColor: appState.foregroundColor
         }

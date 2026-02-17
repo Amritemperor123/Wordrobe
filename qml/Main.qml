@@ -66,6 +66,30 @@ ApplicationWindow {
         return true
     }
 
+    function findPrevious(query, fromPosition) {
+        // Wrap-around reverse search: if not found before cursor, retry from end.
+        if (query === "") {
+            return false
+        }
+
+        const textValue = editorPane.text
+        const hasActiveMatch = editorPane.selectionEnd > editorPane.selectionStart
+                               && editorPane.selectedText === query
+        const anchor = hasActiveMatch ? editorPane.selectionStart : editorPane.cursorPosition
+        const start = fromPosition !== undefined ? fromPosition : anchor
+        let index = textValue.lastIndexOf(query, Math.max(0, start - 1))
+        if (index === -1) {
+            index = textValue.lastIndexOf(query, textValue.length - 1)
+        }
+        if (index === -1) {
+            return false
+        }
+
+        editorPane.selectRange(index, index + query.length)
+        editorPane.focusEditor()
+        return true
+    }
+
     function replaceNext(query, replacement) {
         if (query === "") {
             return false
@@ -190,6 +214,11 @@ ApplicationWindow {
 
     Features.FindDialog {
         id: findDialog
+        headerBackgroundColor: appState.panelBackgroundColor
+        headerTextColor: appState.foregroundColor
+        onFindPreviousRequested: function(query) {
+            root.findPrevious(query)
+        }
         onFindNextRequested: function(query) {
             root.findNext(query)
         }
@@ -197,6 +226,8 @@ ApplicationWindow {
 
     Features.ReplaceDialog {
         id: replaceDialog
+        headerBackgroundColor: appState.panelBackgroundColor
+        headerTextColor: appState.foregroundColor
         onReplaceNextRequested: function(query, replacement) {
             root.replaceNext(query, replacement)
         }
